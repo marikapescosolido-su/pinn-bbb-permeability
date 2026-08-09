@@ -1,5 +1,5 @@
 ---
-title: "Determining the BBB Permeability (k1) from PET Data Using a Physics-Informed Neural Network (PINN) for an FDG Tracer in the Brain"
+title: "Determining the BBB Permeability (K1) from PET Data Using a Physics-Informed Neural Network (PINN) for an FDG Tracer in the Brain"
 author: "Marika Pescosolido"
 date: last-modified
 format:
@@ -17,13 +17,15 @@ format:
     highlight-style: github
 ---
 
-# Research question
+# Research question and note from the author
 
-Determine the BBB permeability (K1) from PET data using a Physics-Informed Neural Network (PINN) for the FDG tracer in the brain.
+RQ: Determine the BBB permeability (K1) from PET data using a Physics-Informed Neural Network (PINN) for the FDG tracer in the brain.
+
+This work was produced as part of Equitech Futures' "AI for Science Summer School", guided by Dr. Mlinar and Dr. Mishra. The purpose of this document is to facilitate the understanding of PINN set on a medical/clinical context, providing guidance on the concept of PINN itself and how Neural Networks (NNs) work. However, it does assume NN prior knowledge. Thus, if the reader thinks would benefit from a deeper understanding of NNs, I recommend this online resource (Chapter 1): http://neuralnetworksanddeeplearning.com/chap1.html.
 
 # Context
 
-A patient is injected with a radioactive sugar tracer (here, FDG) and then enters a PET scanner, which takes repeated snapshots monitoring the radioactivity "flow" in the brain. FDG is a modified glucose molecule that, despite undergoing the same phosphorylation process as natural glucose and turning into FDG-6 (the molecule becomes attached to a phosphate group), is not continuously broken down for energy. When FDG is in its FDG-6 form, due to its new chemical structure, it cannot be further metabolized and thus becomes trapped in the neural cell.
+Imagine that a patient is injected with a radioactive sugar tracer (such as FDG) and then enters a PET scanner, which takes repeated snapshots monitoring the radioactivity "flow" of the tracer in the brain. FDG is a modified glucose molecule that, despite undergoing the same phosphorylation process as natural glucose and turning into FDG-6 (when the molecule attaches to a phosphate group), is not continuously broken down for energy. When FDG is in its FDG-6 form, due to its new chemical structure, it cannot be further metabolized and thus becomes trapped in the neural cell.
 
 Hence, PET can visualize the radioactivity level in each area of the brain after an interval \(t\). This "radioactivity signal" is given by the sum of:
 
@@ -37,14 +39,14 @@ This is known as the "free tissue phase" and is indicated with C1(t). Note that 
 
 - The tracer that has been trapped (and accumulating) in the brain cells and thus is not leaving the brain anymore.
 
-This is known as the "trapped tissue phase" and is indicated with C2(t). Note that C2(t)k3 indicates the FDG that is being trapped in the brain cells (where k3 is the rate of trapping). Note that C2(t)k4 indicates the FDG that is leaving the brain cells and going back to the free tissue phase (where k4 is the rate of untrapping). However in real tissue k4 is very slow and approximated to 0.
+This is known as the "trapped tissue phase" and is indicated with C2(t). Note that C2(t)k3 indicates the FDG that is being trapped in the brain cells (where k3 is the rate of trapping), whereas C2(t)k4 indicates the FDG that is leaving the brain cells and going back to the free tissue phase (where k4 is the rate of untrapping). However in real tissue k4 is very slow and approximated to 0.
 
 The explanation above is summarized by the following diagram:
 
 ```text
 BLOOD              FREE TISSUE           TRAPPED TISSUE
 Cp(t)   --K1-->      C1(t)      --k3-->     C2(t)
-<--k2--                 <--k4--
+        <--k2--                 <--k4--
 ```
 
 Or, simplified as:
@@ -52,10 +54,10 @@ Or, simplified as:
 ```text
 BLOOD              FREE TISSUE           TRAPPED TISSUE
 Cp(t)   --K1-->      C1(t)      --k3-->     C2(t)
-<--k2--
+        <--k2--
 ```
 
-The PET scanner cannot distinguish these three measurements, but rather sees them as combined in radioactivity in each area over time as a unique signal: CPET(t) for "combined PET over time".
+The PET scanner cannot distinguish these three measurements, but rather sees them as combined radioactivity in each area over time as a unique signal: CPET(t) for "combined PET over time".
 
 In the most simplified form:
 
@@ -79,11 +81,11 @@ $$
 
 The two terms describe tracer arriving from the free compartment and leaving for the free compartment, respectively.
 
-Among the four rates (\(K_1\), \(k_2\), \(k_3\), and \(k_4\)), the one describing BBB permeability is \(K_1\). The others describe the flux of FDG across the brain-tissue compartments, which is not of interest for the purpose of this work. Hence, the goal is to estimate \(K_1\) from the known PET signal \(C_{\mathrm{PET}}(t)\).
+Among the four rates (\(K_1\), \(k_2\), \(k_3\), and \(k_4\)), the one describing BBB permeability is \(K_1\). The others describe the flux of FDG across the brain-tissue compartments, which is not of interest for the purpose of this work directly, but that are similarly optimized by the PINN. 
 
 # Purpose
 
-Recover the unknown K1 (and k2, k3, k4) from the known CPET(t) using a Physics-Informed Neural Network (PINN).
+Let us recover the unknown K1 (and k2, k3, k4) from the known CPET(t) using a Physics-Informed Neural Network (PINN).
 
 ```python
 import torch
@@ -92,15 +94,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 ```
 
-Graph the progression of BBB permeability over time.
-
 # Generate synthetic data to imitate experimental PET data
 
-Noise is also added so that the data do not look perfect.
+For the scope of this work, the "experimental" data are synthetically produced by adding noise to the physics equations that generate them.
 
 ## Physical parameters
 
-Physics parameters existing only to generate "real" data. These are the "experimental real" values obtained by the PET scanner using appropriate physics nomenclature.
+Physics parameters existing only to generate "real" data. They are not known and rather represent what the PINN tries to discover. They are useful to generate the synthetic dataset. After its generation, we can assume "they do not exist".
 
 ```python
 k1_real = 0.89  # Forward rate from blood to free tissue (BBB permeability)
