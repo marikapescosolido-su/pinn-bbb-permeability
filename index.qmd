@@ -4,7 +4,8 @@ author: "Marika Pescosolido"
 date: last-modified
 ---
 
-## Project Goals
-AI for Science Summer School
+# Complete PINN implementation
 
-$$E = mc^2$$
+```python
+{{< include "PINN final copy.py" >}}
+```
