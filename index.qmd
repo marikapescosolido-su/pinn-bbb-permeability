@@ -732,5 +732,24 @@ print(f"Saved plot to: {plot_path}")
 
 ![PINN prediction compared with the true FDG two-tissue compartment signal and noisy CPET measurements.](fdg_final.png){#fig-fdg-final width=90% fig-align="center"}
 
+::: {.callout-note title="PINN output"}
+```text
+============================================================
+FINAL KINETIC PARAMETERS ESTIMATED BY THE PINN
+============================================================
+K1 = 0.6104  (blood → free brain tissue)
+k2 = 0.0782  (free brain tissue → blood)
+k3 = 1.1690  (free → phosphorylated tissue)
+k4 = 0.4260  (phosphorylated → free tissue)
+
+============================================================
+ANSWER TO THE RESEARCH QUESTION
+============================================================
+The PINN-estimated value of K1 is 0.6104. K1 represents the blood-to-brain tissue FDG influx rate and is the kinetic parameter used in this model to characterize FDG transport across the blood-brain barrier (BBB).
+
+Therefore, the estimated BBB FDG permeability/transport parameter for this synthetic PET dataset is K1 = 0.6104.
+```
+:::
+
 # Acknowledgments
 I extend my sincere gratitude to Dr. Mlinar and Dr. Mishra for their guidance throughout the brainstorming and writing of this work. I am also deeply grateful to the Equitech Futures Institute for awarding me an EFI scholarship and granting me Futures Hub "Learner+" access, which enabled me to attend the "AI for Science Summer School" free of charge.
