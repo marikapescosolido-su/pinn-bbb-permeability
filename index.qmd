@@ -225,8 +225,9 @@ where np.zeros_like creates a new array the same length as t_syn (one slot per t
 Now the compiled loop must be created:
 
 ```python
-for i in range(1, len(t_syn)): #skipping the initial condition at 0, that is already correct because equal to zero.
-                               #use len so that it indicates positions in the array and not values.
+for i in range(1, len(t_syn)): 
+#skipping the initial condition at 0, that is already correct because equal to zero.
+#use len so that it indicates positions in the array and not values.
 ```
 
 
@@ -274,13 +275,19 @@ Here, we simulated a grid of t_syn of 60,001 points for accuracy. However, in a 
 
 ```python
 N_data = 10
-t_data = np.linspace(t_min, t_max, N_data) #This generates a sequence of evenly spaced numbers over a specified interval, controlled primarily by a start value, a stop value, and the total number of points.
+t_data = np.linspace(t_min, t_max, N_data) 
+#This generates a sequence of evenly spaced numbers over a specified interval, controlled 
+#primarily by a start value, a stop value, and the total number of points.
 ```
 
 ```python
 C1_data = np.interp(t_data, t_syn, C1_syn)
 C2_data = np.interp(t_data, t_syn, C2_syn)
-#Here np.interp wants to take for each of the 10 points in t_data, the two t_syn values that are closestt to it (one just below, one just above) and interpolate its C1 or C2. For example, if t_data is 6.5, you take the C1 at t_syn=6.499 and t_syn=6.501 and by interpolating their C1 (in this example it is a perfect average because it is exactly in the middle, but more generally, it should be a weighted average), you find the C1 at t_data.
+#Here np.interp wants to take for each of the 10 points in t_data, the two t_syn values that 
+#are closestt to it (one just below, one just above) and interpolate its C1 or C2. 
+#For example, if t_data is 6.5, you take the C1 at t_syn=6.499 and t_syn=6.501 and by 
+#interpolating their C1 (in this example it is a perfect average because it is exactly 
+#in the middle, but more generally, it should be a weighted average), you find the C1 at t_data.
 ```
 
 Now, combine the C1_data and C2_data just calculated into the CPET_true(t), the "un-noisy" CPET(t).
@@ -294,14 +301,26 @@ Now, add noise to CPET_true(t) to find CPET_exp(t), the "noisy" CPET(t):
 
 ```python
 np.random.seed(0)  # For reproducibility (repeatable output)
-#It is a starting number used to initialize a pseudo-random number generator Because NN weights are initialized randomly before training begins. # - Without seed: If your model performs well today, you might run it tomorrow and get worse results just because of a different random starting point. 
-# - With seed: You can reproduce your exact metrics, training loss curves, and final model weights every single run.
+#It is a starting number used to initialize a pseudo-random number generator 
+#because NN weights are initialized randomly before training begins. 
+# - Without seed: If your model performs well today, you might run it tomorrow 
+#   and get worse results just because of a different random starting point. 
+# - With seed: You can reproduce your exact metrics, training loss curves, and 
+#   final model weights every single run.
 ```
 
 ```python
 noise_level = 0.05 #this indicates how large the fake measurement is.
 CPET_exp = CPET_true + noise_level * np.random.randn(N_data)
-#np.random.randn(N_data) draws numbers from a normal distribution (bell curve). Hence, np.random.randn(N_data) takes N_data=10 random numbers on the bell curve and then multiplies by the noise to then add it to the real CPET. The reason why the bell curve values are multiplied by the noise comes from the fact that real measurement errors (e.g. PET scanner) are often not given by single glitches, but rather by the sum of many tiny independent sources of error that pile up. According to the Central Limit Theorem, whenever you add up many small independent random effects, the result tends to form a bell curve, even if the individual effects were not bell shaped themselves. This makes the noise added more realistic.
+#np.random.randn(N_data) draws numbers from a normal distribution (bell curve). 
+#Hence, np.random.randn(N_data) takes N_data=10 random numbers on the bell curve and
+#then multiplies by the noise to then add it to the real CPET. The reason why the 
+#bell curve values are multiplied by the noise comes from the fact that real measurement 
+#errors (e.g. PET scanner) are often not given by single glitches, but rather by the sum
+#of many tiny independent sources of error that pile up. According to the Central Limit Theorem,
+#whenever you add up many small independent random effects, the result tends to form a bell curve,
+#even if the individual effects were not bell shaped themselves.
+#This makes the noise added more realistic.
 ```
 
 NB. Real PET data usually follow a Poisson distribution, but for large counts, it is very similar to the Gaussian bell curve, making the simplification very reasonable.
@@ -344,8 +363,10 @@ This section defines the NN structure: Here are sequentially added 2 hidden laye
 ```python
 class PINN(nn.Module): #nn.Module is the basic parent class for all NN.
     def __init__(self, n_hidden=32):
-        super(PINN, self).__init__() #This allows PyTorch to find, store, differentiate, and optimize all the NN weights.
-        self.net = nn.Sequential( #nn sequential constructs a pipeline of layers so that the output of each operation becomes the input of the subsequent one.
+        super(PINN, self).__init__() 
+#This allows PyTorch to find, store, differentiate, and optimize all the NN weights.
+        self.net = nn.Sequential( 
+#nn sequential constructs a pipeline of layers so that the output of each operation becomes the input of the subsequent one.
 ```
 
 The input layer of the PINN becomes the first hidden layer. The network receives one input number (e.g. time) and sends it to `n_hidden=32` neurons, creating 32 output features from one input feature. Every neuron calculates \(z_j=w_jt+b_j\). PyTorch creates and learns:
@@ -391,29 +412,38 @@ This layer receives the 32 hidden values and produces two outputs:
 ```
 
 ```python
-    def forward(self, t): #forward defines how the input data travels through the network. Specifically, it passes the time values through every operation in self.net: t -> Linear -> Tanh -> Linear -> Tanh -> Linear -> out
-        out = self.net(t)          # shape (batch, 2)
-        C1 = out[:, 0:1]           # first column -> C1 (this specific notation is used to keep its two-dimensional shape)
-        C2 = out[:, 1:2]           # second column -> C2
+    def forward(self, t): 
+#forward defines how the input data travels through the network. 
+#Specifically, it passes the time values through every operation in self.net:
+#t -> Linear -> Tanh -> Linear -> Tanh -> Linear -> out
+        out = self.net(t)          
+        #shape (batch, 2)
+        C1 = out[:, 0:1]           
+        #first column -> C1 (this specific notation is used to keep its two-dimensional shape)
+        C2 = out[:, 1:2]          
+        #second column -> C2
         return C1, C2
 ```
 
 The output containing the 2D array for C1(t)_pred and C2(t)_pred with respect to time will look like the following: 
 
+```text
                 column 0       column 1 
                    C1             C2 
 time 0          [C1(0),          C2(0)] 
 time 10         [C1(10),        C2(10)] 
 time 20         [C1(20),        C2(20)]
+```
 
 ```python
-model = PINN(n_hidden=32) #both hidden layers contain 32 neurons.
+model = PINN(n_hidden=32) 
+#both hidden layers contain 32 neurons.
 ```
 
 The training of the weights will be shown in the follwing sections. At this point, PyTorch is generating all the initial weights and biases. However, the training will then change them appropriately.
 
 Here, the overall structure is summarized: 
-
+```text
    Input
   t (time)
   1 number
@@ -436,7 +466,7 @@ Output layer
     │
     ├── C1(t)
     └── C2(t)
-
+```
 
 Now, an automatic differentiator is needed:
 
@@ -449,15 +479,19 @@ This computes the derivative of y with respect to x using autograd from torch y,
 ```python
     return torch.autograd.grad(
         y, x, 
-    #y is the quantity being differentiated (in this case C1_pred, C2_pred) x is the variable with respect to which y is differentiated (in this case, time t)
-        grad_outputs=torch.ones_like(y), #creation of a tensor of 1s with the same shape as y to return the derivative at every t.
+    #y is the quantity being differentiated (in this case C1_pred, C2_pred)
+    #x is the variable with respect to which y is differentiated (in this case, time t)
+        grad_outputs=torch.ones_like(y), 
+    #creation of a tensor of 1s with the same shape as y to return the derivative at every t.
         create_graph=True
     )[0]
 ```
 
 This will allow to calculate easily the derivatives of C1_pred and C2_pred:
+```text
 derivative(C1_pred, t) -> dC1/dt 
 derivative(C2_pred, t) -> dC2/dt
+```
 
 Note that the purpose of this work is to calculate the BBB permeability (K1), knowing that all K1,k2,k3, and k4 are unknown. Hence, the goal is to recover these kinetic rates from the experimental PET data and each of them must behave as a NN weight. These weights are indicated as k1_raw, k2_raw, k3_raw, and k4_raw and are constantly optimized. These kinetic values cannot be negative, that is why softplus is used:
 
@@ -513,7 +547,8 @@ def physics_loss(model, t):
 ```python
     cp_t = Cp_torch(t)
     k1_p, k2_p, k3_p, k4_p = get_rates()
-#Below are shown the two equations, using the LEARNABLE rate guesses instead of the real (unknown-to-the-model) k1_real, k2_real, k3_real, k4_real:
+#Below are shown the two equations, using the LEARNABLE rate guesses 
+#instead of the real (unknown-to-the-model) k1_real, k2_real, k3_real, k4_real:
     dC1_dt_true = k1_p*cp_t - (k2_p+k3_p)*C1_pred + k4_p*C2_pred
     dC2_dt_true = k3_p*C1_pred - k4_p*C2_pred
 ```
@@ -552,8 +587,10 @@ optimizer = torch.optim.Adam(
     [k1_raw, k2_raw, k3_raw, k4_raw],
     lr=0.005
 )
-#Here, lr is the learning rate. This controls the step size taken during each update. Here it is slected Adam, one of the most popular optimization algorithms in deep learning. 
-#model.parameters(): This hands all the trainable weights and biases in the neural network over to the optimizer so it "knows" what to adjust.
+#Here, lr is the learning rate. This controls the step size taken during each update. 
+#Here it is selected Adam, one of the most popular optimization algorithms in deep learning. 
+#model.parameters(): This hands all the trainable weights and biases in the neural network over to 
+#the optimizer so it "knows" what to adjust.
 ```
 
 Hyperparameters for weighting the loss terms:
@@ -563,23 +600,30 @@ Hyperparameters for weighting the loss terms:
 lambda_data = 20.0  #upweighted since there are only 10 sparse points to anchor the fit
 lambda_ode = 1.0
 lambda_ic = 1.0
-#These can be written manually for a baseline attempt, but eventually a softadapt/self-adaptive PINN can be executed.
+#These can be written manually for a baseline attempt, but eventually a softadapt/self-adaptive 
+#PINN can be executed.
 ```
 
 ```python
 #For logging:
 num_epochs = 6000 #number of iterations to train the model, the higher the value, the more is the accuracy.
 print_every = 500 #printing once in every 500 iterations.
-#num epochs: it is usually set a high epoch count and let a technique called Early Stopping decide when to halt. 
-#VALIDATION LOSS: As long as validation loss is decreasing, the model is learning. When validation loss stops improving and begins rising while training loss keeps dropping, the model is just memorizing the training data. Set a "patience" threshold (e.g., 10–20 epochs). If validation loss doesn't improve for that many epochs, stop automatically and restore the best weights.
+#num epochs: it is usually set a high epoch count and let a 
+#technique called Early Stopping decide when to halt. 
+#VALIDATION LOSS: As long as validation loss is decreasing, the model is learning. 
+#When validation loss stops improving and begins rising while training loss keeps dropping, 
+#the model is just memorizing the training data. Set a "patience" threshold (e.g., 10–20 epochs). 
+#If validation loss doesn't improve for that many epochs, stop automatically and restore the best weights.
 ```
 
 # Training loop
 
 ```python
-model.train() #set the model to training mode
+model.train() 
+#set the model to training mode
 for epoch in range(num_epochs):
-    optimizer.zero_grad() #clear the gradients from the previous step
+    optimizer.zero_grad() 
+#clear the gradients from the previous step
 ```
 
 ```python
@@ -620,6 +664,7 @@ print(f"Recovered values: k1={k1_f.item():.4f}, k2={k2_f.item():.4f}, "
 
 This below is an example og how the training process looks like for one fo the 6000 epochs:
 
+```text
 Network predicts C1 and C2
            ↓
 Losses measure the mistakes
@@ -629,6 +674,7 @@ Backpropagation finds which weights caused the mistakes
 Optimizer adjusts the network weights and k1, k2, k3, k4
            ↓
 Network makes improved predictions
+```
 
 Hence, the losses are outside the network: they judge its outputs, and provide the information needed to correct its weights and kinetic rates.
 
