@@ -1,0 +1,10 @@
+---
+title: "#Determining the BBB permeability (k1) from PET data using a Physics-Informed Neural Network (PINN) for a FDG tracer in the brain"
+author: "Marika Pescosolido"
+date: last-modified
+---
+
+## Project Goals
+AI for Science Summer School
+
+$$E = mc^2$$
