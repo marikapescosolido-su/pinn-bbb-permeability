@@ -791,7 +791,9 @@ k4 = 0.4260  (phosphorylated → free tissue)
 ============================================================
 ANSWER TO THE RESEARCH QUESTION
 ============================================================
-The PINN-estimated value of K1 is 0.6104. K1 represents the blood-to-brain tissue FDG influx rate and is the kinetic parameter used in this model to characterize FDG transport across the blood-brain barrier (BBB).
+The PINN-estimated value of K1 is 0.6104. K1 represents the blood-to-brain tissue 
+FDG influx rate and is the kinetic parameter used in this model to characterize 
+FDG transport across the blood-brain barrier (BBB).
 
 Therefore, the estimated BBB FDG permeability/transport parameter for this synthetic PET dataset is K1 = 0.6104.
 ```
