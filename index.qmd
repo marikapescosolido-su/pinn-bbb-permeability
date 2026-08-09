@@ -157,13 +157,43 @@ t_syn=np.arange(0,t_max+dt,dt) #np.arange(start,stop+step,step) so that it stops
 
 Moving forward at very small steps, each 0.001 minutes apart from 0 to 60 minutes.
 
-Note that in dC1/dt = K1*Cp(t) - (k2+k3)*C1(t) + k4*C2(t) to calculate C1, we need to know how fast C1 is changing that is dC1/dt, but to know dC1/dt you need to know C1. The only C1 known is at t=0, where C1=0 as initial condition, because there was no injection yet. Note that C1(t) is the accumulated result of dC1/dt that are small changes over time added together, starting from t=0. At t=0, dC1/dt = K1*Cp(t)- (k2+k3)*(0) + k4*(0) since both C1 and C2 are zero at t=0 At t=0, dC2/dt  = k3·(0)-k4·(0)=0 From these equations you therefore calculate dC1/dt and dC2/dt. At t+dt=0+0.001: C1(t+dt)= C1(t) + dt*(dC1/dt)= dt*(dC1/dt) C2(t+dt)= C2(t) + dt*(dC2/dt)= dt*(dC2/dt) With the new C1(t+dt) and C2(t+dt), you calculate the new dC1/dt and dC2/dt: At t=t+dt, dC1/dt = K1*Cp(t)- (k2+k3)*C1(t+dt) + k4*C2(t+dt) since both C1 and C2 are zero at t=0 At t=t+dt, dC2/dt  = k3·C1(t+dt)-k4·C2(t+dt) With the updated dC1/dt and dC2/dt, you can now calculate C1(t+2dt) and C2(t+2dt) at t+2dt=0.002: C1(t+2dt)= C1(t+dt) + dt*(dC1/dt)= dt*(dC1/dt) C2(t+2dt)= C2(t+dt) + dt*(dC2/dt)= dt*(dC2/dt) and so on...
+Note that, in
+
+$$
+\frac{dC_1}{dt}=K_1C_p(t)-(k_2+k_3)C_1(t)+k_4C_2(t),
+$$
+
+to calculate (C_1), we need to know how quickly (C_1) is changing, that is, (dC_1/dt). However, to know (dC_1/dt), we need to know (C_1). The only known value is (C_1(0)=0), because there has been no injection yet. Note that (C_1(t)) is the accumulated result of the small changes (dC_1/dt) added together over time, starting from (t=0).
+
+At (t=0):
+
+$$
+\frac{dC_1}{dt}=K_1C_p(t)-(k_2+k_3)(0)+k_4(0),
+$$
+
+because both (C_1) and (C_2) are zero, and
+
+$$
+\frac{dC_2}{dt}=k_3(0)-k_4(0)=0.
+$$
+
+From these equations, we calculate (dC_1/dt) and (dC_2/dt). At (t+\Delta t=0+0.001):
+
+$$
+C_1(t+\Delta t)=C_1(t)+\Delta t\frac{dC_1}{dt},
+$$
+
+$$
+C_2(t+\Delta t)=C_2(t)+\Delta t\frac{dC_2}{dt}.
+$$
+
+Using the new (C_1(t+\Delta t)) and (C_2(t+\Delta t)), we calculate the updated derivatives. These derivatives are then used to calculate (C_1(t+2\Delta t)) and (C_2(t+2\Delta t)), and the process continues in the same way.
 
 Summarizing steps:
 
 1. Use the initial condition t=0, C1(0)=0 and C2(0)=0, to calculate the first rate dC1/dt and dC2/dt after t=0.
 
-2. Use this rate, to calculate C1(t+dt) and C2(t+dt), which are given by their previous C1(t) and C2(t) added to the change in that time interval dt*(dC1/dt) and dt*(dC2/dt) respectively.
+2. Use this rate to calculate (C_1(t+\Delta t)) and (C_2(t+\Delta t)), which are given by their previous values plus the changes \(\Delta t(dC_1/dt)\) and \(\Delta t(dC_2/dt)\), respectively.
 
 3. Use these values of C1(t+dt) and C2(t+dt) to calculate the subsequent rates dC1/dt and dC2/dt after t=t+dt.
 
@@ -210,7 +240,7 @@ STEP 2: Use the rate to calculate the new C1 and C2
     C2_syn[i]=C2_prev+dt*dC2_dt
 ```
 
-these new values of C1_syn and C2_syn will be used then to update the values of the rates. example: i=4, C1_syn[4]=C1_prev+dt*dC1_dt=C1_syn[3]+dt*dC1_dt this is the updated value of C1 with the calculation of the new rate.
+These new values of `C1_syn` and `C2_syn` will then be used to update the rates. For example, when `i=4`, $C_{1,\mathrm{syn}}[4]=C_{1,\mathrm{syn}}[3]+\Delta t(dC_1/dt)$. This is the updated value of (C_1), calculated using the new rate.
 
 Hence, the final C1 and C2 at t_max:
 
@@ -308,7 +338,7 @@ class PINN(nn.Module): #nn.Module is the basic parent class for all NN.
         self.net = nn.Sequential( #nn sequential constructs a pipeline of layers so that the output of each operation becomes the input of the subsequent one.
 ```
 
-The input layer of the PINN becomes the first hidden layer. The network receives one input number (e.g. time) and it sends it to n_hidden=32 neurons, so that you create 32 out_features from 1 in_features. Every neuron calculates z_j = weight_j * t + bias_j. PyTorch creates and learns:
+The input layer of the PINN becomes the first hidden layer. The network receives one input number (e.g. time) and sends it to `n_hidden=32` neurons, creating 32 output features from one input feature. Every neuron calculates \(z_j=w_jt+b_j\). PyTorch creates and learns:
 
 - 32 weights, because each of the 32 neurons receives one input.
 
@@ -417,7 +447,19 @@ The latter function return the physical rates used in the differential equations
 
 # Define the loss components (PINN)
 
-Remember that the PINN predicts C1(t)_pred and C2(t)_pred from the CPET_exp(t) that was provided. The PINN is trained on three kinds of error: (1) Data loss: reproduce what the PET scanner measured. Here, for each of the 10 measurements it is calculated the difference between the CPET_pred obtained from following the CPET equations using the predictions of the PINN [CPET_pred = Vb*cp_t + (1-Vb)*(C1_pred + C2_pred)] and the experimental CPET_exp. In a nutshell: CPET_pred - CPET_exp and then calculates from this difference the squared error. (2) ODE-physics loss: obey the ODE kinetic equations. Here C1(t)_ pred and C2(t)_pred are differentiated to calculate dC1/dt_pred and dC2/dt_pred. These are then compared against the dC1/dt and dC2/dt obtained from the ODEs mentioned previously. In a nutshell: dC1(t)_dt_pred - dC1(t)_dt_exp and dC2(t)_dt_pred - dC2(t)_dt_exp and for each difference calculate the loss squared error. Note that this loss will use the collocation points (200), so it will predict C1(t)_ pred and C2(t)_ pred for each and follow the same steps described above for the 10 PET points. This is useful to check the "path" between the observations. Without them, the model might fit the observations while taking an arbitrary or unphysical path between those observations, which are only 10. (3) Initial-condition loss: start from the correct physical state. Here we do the squared error of the difference between the initial condition predicted by the NN and the one observed experimentally: In a nutshell: C1(0)_pred - C1(0)_exp and C2(0)_pred - C2(0)_exp, which equals C1(0)_pred - 0 and C2(0)_pred - 0.
+Remember that the PINN predicts (C_{1,\mathrm{pred}}(t)) and (C_{2,\mathrm{pred}}(t)) from the provided (C_{\mathrm{PET,exp}}(t)). The PINN is trained on three kinds of error:
+
+1. **Data loss:** reproduce what the PET scanner measured. For each of the 10 measurements, the difference is calculated between the predicted PET signal
+
+   $$
+   C_{\mathrm{PET,pred}}=V_bC_p(t)+(1-V_b)(C_{1,\mathrm{pred}}+C_{2,\mathrm{pred}})
+   $$
+
+   and the experimental (C_{\mathrm{PET,exp}}). In a nutshell, the squared error is calculated from (C_{\mathrm{PET,pred}}-C_{\mathrm{PET,exp}}).
+
+2. **ODE-physics loss:** obey the ODE kinetic equations. Here, $C_{1,\mathrm{pred}}(t)$ and $C_{2,\mathrm{pred}}(t)$ are differentiated to calculate their time derivatives. These are compared against the derivatives obtained from the ODEs mentioned previously. This loss uses the 200 collocation points and follows the same steps described above for the 10 PET points. This is useful for checking the "path" between observations. Without these points, the model might fit the observations while taking an arbitrary or unphysical path between them.
+
+3. **Initial-condition loss:** start from the correct physical state. Here, the squared error is calculated between the initial conditions predicted by the neural network and those observed experimentally: $C_{1,\mathrm{pred}}(0)-0$ and $C_{2,\mathrm{pred}}(0)-0$.
 
 Thus, through these three data losses we measure both the 10 PET data points, but also the data predicted in between.
 
