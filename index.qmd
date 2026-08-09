@@ -21,7 +21,7 @@ format:
 
 RQ: Determine the BBB permeability (K1) from PET data using a Physics-Informed Neural Network (PINN) for the FDG tracer in the brain.
 
-This work was produced as part of Equitech Futures' "AI for Science Summer School", guided by Dr. Mlinar and Dr. Mishra (https://www.futureshub.com/cohorts/ai-for-science-summer-school). The purpose of this document is to facilitate the understanding of PINNs set on a medical/clinical context, providing guidance on the concept of PINN itself and how Neural Networks (NNs) work. However, it does assume NN prior knowledge. Thus, if the reader thinks would benefit from a deeper understanding of NNs, I recommend this online resource (Chapter 1): http://neuralnetworksanddeeplearning.com/chap1.html.
+This work was produced as part of Equitech Futures' ["AI for Science Summer School"](https://www.futureshub.com/cohorts/ai-for-science-summer-school), guided by Dr. Mlinar and Dr. Mishra. The purpose of this document is to facilitate the understanding of PINNs set on a medical/clinical context, providing guidance on the concept of PINN itself and how Neural Networks (NNs) work. However, it does assume NN prior knowledge. Thus, if the reader thinks would benefit from a deeper understanding of NNs, I recommend this [online resource (Chapter 1)](http://neuralnetworksanddeeplearning.com/chap1.html).
 
 # Context
 
@@ -81,7 +81,7 @@ $$
 
 The two terms describe tracer arriving from the free compartment and leaving for the free compartment, respectively.
 
-Among the four rates (\(K_1\), \(k_2\), \(k_3\), and \(k_4\)), the one describing BBB permeability is \(K_1\). The others describe the flux of FDG across the brain-tissue compartments, which is not of interest for the purpose of this work directly, but that are similarly optimized by the PINN. 
+Among the four rates (\(K_1\), \(k_2\), \(k_3\), and \(k_4\)), the one describing BBB permeability is \(K_1\). The others describe the flux of FDG across the brain-tissue compartments, which is not of interest for the purpose of this work directly, but that are similarly predicted by the PINN. 
 
 # Purpose
 
@@ -100,7 +100,7 @@ For the scope of this work, the "experimental" data are synthetically produced b
 
 ## Physical parameters
 
-Physics parameters existing only to generate "real" data. They are not known and rather represent what the PINN tries to discover. They are useful to generate the synthetic dataset. After its generation, we can assume "they do not exist".
+Physics parameters existing only to generate "real" data. They are not known and rather represent what the PINN tries to discover. They are useful to generate the synthetic dataset. After the dataset-generation, we can assume that "they do not exist".
 
 ```python
 k1_real = 0.89  # Forward rate from blood to free tissue (BBB permeability)
@@ -109,9 +109,13 @@ k3_real = 0.057  # Forward rate from free tissue to trapped tissue
 k4_real = 0.0   # Backward rate from trapped tissue to free tissue
 ```
 
-These values were taken from the following paper: "Tomographic measurement of local cerebral glucose metabolic rate in humans with (F-18)2-fluoro-2-deoxy-D-glucose: validation of method" These values are unknown to the scientist when performing the PINN analysis.
+These values were taken from the following paper: "Tomographic measurement of local cerebral glucose metabolic rate in humans with (F-18)2-fluoro-2-deoxy-D-glucose: validation of method". Note once again that these values are unknown to the scientist when performing the PINN analysis.
 
-The Cp(t) value is known. In fact the PET raw output is a 4D image, meaning a 3D space, changing over time, t. If you select a single voxel, you can see the time evolution of the radioactivity in that voxel, which is the CPET(t) value, the combined PET signal, mentioned previously. On the other hand, the Cp(t) is the plasma concentration of the FDG tracer in the blood (the injected sugar and input of the system). In a medical context the Cp(t) is obtained through periodic blood sampling, which is invasive and not always feasible. Or, through an image-derived input function (IDIF) from the PET images themselves, which is less invasive but more complex and less accurate. The latter would mean having in the PET scan also a large blood vessel (such as the aorta or a heart chamber) visible and selecting a voxel in them, treating its CPET(t) as the Cp(t) of the system. However, this is not always possible, and even when it is, the IDIF is not very accurate. Usually the first option (blood sampling) is adopted in combination with the Feng model. The Feng formula is a curve-fitting model that describes the time course of the plasma input function (Cp(t)) for FDG in humans. It is based on a sum of exponentials and is widely used in PET studies to model the plasma input function. Using the Feng model makes it possible to transform those scattered blood samples data points (or IDIF), into a smooth mathematical function that can be used in the ODEs describing the FDG motion across the brain tissue compartments. Since for this synthetic data generation we are not interested in the Cp(t) accuracy, we will use a simple function to generate it, which is not realistic but serves the purpose of this work. In fact, it could be possible to use examples of sample blood measurements and then apply the Feng model, but given the complexity of the 7-parameter Feng model, it is not necessary for the purpose of this work, which wants to focus on something different (e.g. BBB permeability).
+The Cp(t) value is known to the scientist. The PET raw output is a 4D image, meaning a 3D space, changing over time, t. If you select a single voxel, you can see the time evolution of the radioactivity in that voxel, which is the CPET(t) value, the combined PET signal, mentioned previously. On the other hand, the Cp(t) is the plasma concentration of the FDG tracer in the blood (the injected sugar and input of the system). 
+
+In a medical context the Cp(t) is obtained through periodic blood sampling, which is invasive and not always feasible. Or, through an image-derived input function (IDIF) from the PET images themselves, which is less invasive but more complex and less accurate. The latter would mean having in the PET scan also a large blood vessel (such as the aorta or a heart chamber) visible and selecting a voxel in them, treating its CPET(t) as the Cp(t) of the system. However, this is not always possible, and even when it is, the IDIF is not very accurate. 
+
+Usually the first option (blood sampling) is adopted in combination with the Feng model. The Feng formula is a curve-fitting model that describes the time course of the plasma input function (Cp(t)) for FDG in humans. It is based on a sum of exponentials and is widely used in PET studies to model the plasma input function. Using the Feng model makes it possible to transform those scattered blood samples data points (or IDIF), into a smooth mathematical function that can be used in the ODEs describing the FDG motion across the brain tissue compartments. Since for this synthetic data generation we are not interested in the Cp(t) accuracy, we will use a simple function to generate it, which is not realistic but serves the purpose of this work. In fact, it could be possible to use examples of sample blood measurements and then apply the Feng model, but given the complexity of the 7-parameter Feng model, it is not valuable for the goal of this reading, which wants to focus on BBB permeability instead.
 
 Here, to generate a plausible known fake Cp(t) curve (to then generate CPET(t) data through the ODEs) we will use the following simple single exponential equation:
 
@@ -131,9 +135,16 @@ def Cp(t):
     return Cp0 * np.exp(-t/tau_p)
 ```
 
-At this point we can generate the synthetic "experimental" data for C1(t) and C2(t) by solving the ODEs numerically using the known Cp(t) and the real k values. From them (Cp(t),C1(t),C2(t)) we will calculate the CPET(t) signal and add some noise to simulate experimental measurements. So, first step, calculate the "true solution", or "un-noisy" CPET(t) signal (CPET_true(t)), by solving the ODEs numerically. Then, add some noise to simulate experimental measurements (CPET_exp(t)) The latter is what would actually be handed to the PINN if I would be using real PET data, from which will then try to recover the unknown K1 value.
+At this point we can generate the synthetic "experimental" data for C1(t) and C2(t) by solving the ODEs numerically using the known Cp(t) and the real k values. From them (Cp(t),C1(t),C2(t)) we will calculate the CPET(t) signal and add some noise to simulate experimental measurements. 
 
-To calculate CPET_true(t), let us calculate C1(t) and C2(t) since CPET(T)=C1(t)+C2(t). I mentioned previously that to calculate Cp0 could also have been used the selection of CPET(t) for a major blood vessel. However, while it is difficult to get a voxel with only a major blood vessel, it is hard not to get smaller blood vessels (capillaries) in the voxel. This means that in a PET voxel there cannot be only pure tissue, but also vessels. Why does this matter since the scanner only sees FDG? It matters because the scanner detects radioactive decay and the scanner cannot tell if the decay is happening because of an FDG molecule decaying in a brain cell or in the blood passing through the vessel (since the FDG was injected in the blood first, that now is circulating across the body) This means that when you select a voxel, you select both brain tissue and capillaries, meaning that you are not measuring the FDG flux only across the brain tissue, but also across the blood (which is not of medical interest). This is why, to make CPET(t) accurate, a fixed parameter Vb (Vassel blood) should be included in the CPET(T) equation. Hence, CPET(t) equation would become:
+- STEP 1: Calculate the "true solution", or "un-noisy" CPET(t) signal (CPET_true(t)), by solving the ODEs numerically. \
+- STEP 2: Add some noise to the previous CPET_true(t) ro simulate experimental measurements (CPET_exp(t)). This is what would actually be handed to the PINN if I would be using real PET data, from which will then try to recover the unknown K1 value.
+
+To calculate CPET_true(t), let us calculate C1(t) and C2(t) since CPET(T)=C1(t)+C2(t). 
+
+NB. I mentioned previously that to calculate Cp0 could also have been used the selection of CPET(t) for a major blood vessel. However, while it is difficult to get a voxel with only a major blood vessel, it is hard not to get smaller blood vessels (capillaries) in the voxel. This means that in a PET voxel there cannot be only pure tissue, but also vessels. Why does this matter since the scanner only sees FDG? It matters because the scanner detects radioactive decay and the scanner cannot tell if the decay is happening because of an FDG molecule decaying in a brain cell or in the blood passing through the vessel (since the FDG was injected in the blood first, that now is circulating across the body). This means that when you select a voxel, you select both brain tissue and capillaries, meaning that you are not measuring the FDG flux only across the brain tissue, but also across the blood (which is not of medical interest). This is why, to make CPET(t) accurate, a fixed parameter Vb (Vassel blood) should be included in the CPET(T) equation. 
+
+To increase the accuracy of the model, the CPET(t) equation is corrected as follows:
 
 $$
 C_{\mathrm{PET}}(t)=V_bC_p(t)+(1-V_b)\left[C_1(t)+C_2(t)\right].
@@ -163,9 +174,12 @@ $$
 \frac{dC_1}{dt}=K_1C_p(t)-(k_2+k_3)C_1(t)+k_4C_2(t),
 $$
 
-to calculate (C_1), we need to know how quickly (C_1) is changing, that is, (dC_1/dt). However, to know (dC_1/dt), we need to know (C_1). The only known value is (C_1(0)=0), because there has been no injection yet. Note that (C_1(t)) is the accumulated result of the small changes (dC_1/dt) added together over time, starting from (t=0).
+to calculate (C_1), we need to know how quickly (C_1) is changing, that is, (dC_1/dt). However, to know (dC_1/dt), we need to know (C_1): It is a vicious circle!
+The only known value is (C_1(0)=0), because there has been no injection yet. This breaks the vicious circle, hence this is the starting point to solve the ODEs.
 
-At (t=0):
+NB. (C_1(t)) is the accumulated result of the small changes (dC_1/dt) added together over time, starting from (t=0).
+
+At (t=0), where the "circle breaks":
 
 $$
 \frac{dC_1}{dt}=K_1C_p(t)-(k_2+k_3)(0)+k_4(0),
@@ -199,7 +213,7 @@ Summarizing steps:
 
 4. Use the rate known to calculate the new C1 and C2 ecc...
 
-So, given the initial C1 and C2, I can calculate the rate. Known the rate, I can calculate the subsequent C1 and C2. Known the subsequent C1 and C2, I can calculate the new rate, ecc... First exact values, then calculation of the rate. This procedure should continue until you reach t+ndt=t+max, where you will get the final cumulative C1(t_max) and C2(t_max).
+So, given the initial C1 and C2, I can calculate the rate. Known the rate, I can calculate the subsequent C1 and C2. Known the subsequent C1 and C2, I can calculate the new rate, ecc... First exact values, then calculation of the rate. This procedure should continue until t+ndt=t+max is reached, where the final cumulative C1(t_max) and C2(t_max) will be found.
 
 ```python
 C1_syn=np.zeros_like(t_syn)
@@ -212,9 +226,11 @@ Now the compiled loop must be created:
 
 ```python
 for i in range(1, len(t_syn)): #skipping the initial condition at 0, that is already correct because equal to zero.
+                               #use len so that it indicates positions in the array and not values.
 ```
 
-use len so that it indicates positions in the array and not values STEP 1: Use initial condition + calculate the rate
+
+STEP 1: Use initial condition + calculate the rate
 
 ```python
     t_prev=t_syn[i-1] #that is t_syn[0]=0
@@ -254,45 +270,39 @@ print(f"C1(t_max=60) = {C1_tmax:.6f}") #with 6 decimal figures
 print(f"C2(t_max=60) = {C2_tmax:.6f}") 
 ```
 
-Here, we simulated a grid of t_syn of 60,001 points for accuracy. However in a real PET scan there are only a limited number of useful snapshotss, and here it is pretended to have only 10 of them.
+Here, we simulated a grid of t_syn of 60,001 points for accuracy. However, in a real PET scan there are only a limited number of useful snapshots, and here only 10 of them are presented.
 
 ```python
 N_data = 10
-t_data = np.linspace(t_min, t_max, N_data)
+t_data = np.linspace(t_min, t_max, N_data) #This generates a sequence of evenly spaced numbers over a specified interval, controlled primarily by a start value, a stop value, and the total number of points.
 ```
-
-generates a sequence of evenly spaced numbers over a specified interval, controlled primarily by a start value, a stop value, and the total number of points.
 
 ```python
 C1_data = np.interp(t_data, t_syn, C1_syn)
 C2_data = np.interp(t_data, t_syn, C2_syn)
+#Here np.interp wants to take for each of the 10 points in t_data, the two t_syn values that are closestt to it (one just below, one just above) and interpolate its C1 or C2. For example, if t_data is 6.5, you take the C1 at t_syn=6.499 and t_syn=6.501 and by interpolating their C1 (in this example it is a perfect average because it is exactly in the middle, but more generally, it should be a weighted average), you find the C1 at t_data.
 ```
 
-here np.interp wants to take for each of the 10 points in t_data, the two t_syn values that are closestt to it (one just below, one just above) and interpolate its C1 or C2. For example t_data is 6.5, so you take the C1 at t_syn=6.499 and t_syn=6.501 and by interpolating their C1 (in this example perfect average because it is exactly in the middle, but more generally, it is a weighted average), you find the C1 at t_data.
-
-Now, combine the C1_data and C2_data calculated into the CPET_true(t) "un-noisy"
+Now, combine the C1_data and C2_data just calculated into the CPET_true(t), the "un-noisy" CPET(t).
 
 ```python
 CPET_true = Vb * Cp(t_data) + (1 - Vb) * (C1_data + C2_data)
 print(f"\nCPET_true at each t_data point:\n{np.round(CPET_true, 5)}")
 ```
 
-not continuous
-
-Now, add noise to CPET_true to find CPET_exp:
+Now, add noise to CPET_true(t) to find CPET_exp(t), the "noisy" CPET(t):
 
 ```python
 np.random.seed(0)  # For reproducibility (repeatable output)
+#It is a starting number used to initialize a pseudo-random number generator Because NN weights are initialized randomly before training begins. # - Without seed: If your model performs well today, you might run it tomorrow and get worse results just because of a different random starting point. 
+# - With seed: You can reproduce your exact metrics, training loss curves, and final model weights every single run.
 ```
-
-It is a starting number used to initialize a pseudo-random number generator Because NN weights are initialized randomly before training begins. Without seed: If your model performs well today, you might run it tomorrow and get worse results just because of a different random starting point. With seed: You can reproduce your exact metrics, training loss curves, and final model weights every single run.
 
 ```python
 noise_level = 0.05 #this indicates how large the fake measurement is.
 CPET_exp = CPET_true + noise_level * np.random.randn(N_data)
+#np.random.randn(N_data) draws numbers from a normal distribution (bell curve). Hence, np.random.randn(N_data) takes N_data=10 random numbers on the bell curve and then multiplies by the noise to then add it to the real CPET. The reason why the bell curve values are multiplied by the noise comes from the fact that real measurement errors (e.g. PET scanner) are often not given by single glitches, but rather by the sum of many tiny independent sources of error that pile up. According to the Central Limit Theorem, whenever you add up many small independent random effects, the result tends to form a bell curve, even if the individual effects were not bell shaped themselves. This makes the noise added more realistic.
 ```
-
-np.random.randn(N_data) draws numbers from a normal distribution (bell curve). Hence, np.random.randn(N_data) takes N_data=10 random numbers on the bell curve and then multiplies by the noise to then add it to the real CPET. The reason why the bell curve values are multiplied by the noise comes from the fact that real measurement errors (e.g. PET scanner) are often not given by single glitches, but rather by the sum of many tiny independent sources of error that pile up. According to the Central Limit Theorem, whenever you add up many small independent random effects, the result tends to form a bell curve, even if the individual effects were not bell shaped themselves. This makes the noise added more realistic.
 
 NB. Real PET data usually follow a Poisson distribution, but for large counts, it is very similar to the Gaussian bell curve, making the simplification very reasonable.
 
@@ -301,16 +311,16 @@ print(f"CPET_exp  at each t_data point:\n{np.round(CPET_exp, 5)}")
 print("\n(CPET_exp is what would actually be handed to the PINN if using real PET data)")
 ```
 
-Hence, we have now calculated both the experimental data CPET_exp that will be used for the PINN, and the real exact one that will be used for comparison to see the accuracy of the physics equations in combination with the experimental data in the PINN.
+Hence, we have now calculated both the experimental data CPET_exp(t) that will be used for the PINN, and the real exact one that will be used for comparison to see the accuracy of the physics equations in combination with the experimental data in the PINN.
 
-Convert t_data and CPET_exp used to train the PINN into tensors because PyTorch needs its own tensor version of the data to train:
+Convert t_data and CPET_exp used to train the PINN into tensors, since PyTorch needs its own tensor version of the data to train:
 
 ```python
 t_data_tensor = torch.tensor(t_data, dtype=torch.float32).view(-1, 1)
 CPET_data_tensor = torch.tensor(CPET_exp, dtype=torch.float32).view(-1, 1)
 ```
 
-do the same for Cp since it gets called later inside physics_loss where autograd wants everything in torch:
+Let us follow a similar procedure for Cp, since it gets called later inside physics_loss where autograd required everything in torch:
 
 ```python
 def Cp_torch(t):
@@ -325,11 +335,11 @@ t_colloc = np.linspace(t_min, t_max, N_colloc) #choose these collacation points 
 t_colloc_tensor = torch.tensor(t_colloc, dtype=torch.float32).view(-1, 1)
 ```
 
-Build a collocation tensor so that the PINN can verify for other 200 random points in the time interval if the ODEs are followed. In fact, for the previous 10 points chosen, the PINN checks if its predicted PET signals match the "experimental" ones. However, when data are missing experimentally (we have only 10), the PINN needs to verify that between the measurements the ODEs are respected. It will be shown later why this is useful when calculating the physics loss.
+The code above builds a collocation tensor so that the PINN can verify for other 200 random points in the time interval chosen, if the ODEs are followed. In fact, for the previous 10 points selected, the PINN checks if their predicted PET signals match the "experimental" ones. However, when data are missing experimentally (we have only 10), the PINN needs to verify that between the measurements the ODEs are respected. It will be shown later why this is useful when calculating the physics loss.
 
 # Define the model
 
-This section defines the NN structure: it is sequentially adding 2 hidden layers with 32 neurons (nodes). This Python code defines and creates a Multi-Layer Perceptron (MLP)
+This section defines the NN structure: Here are sequentially added 2 hidden layers with 32 neurons (nodes). This Python code defines and creates a Multi-Layer Perceptron (MLP).
 
 ```python
 class PINN(nn.Module): #nn.Module is the basic parent class for all NN.
@@ -348,7 +358,7 @@ The input layer of the PINN becomes the first hidden layer. The network receives
             nn.Linear(1, n_hidden), #FIRST HIDDEN LAYER
 ```
 
-then apply the tanh activation function to the output of each of the 32 neurons separately. tanh converts each output to a number between -1 and 1, while introducing nonlinearity so that the network can represent curved concentration trajectories (not only straight lines).
+then, the tanh activation function is applied to the output of each of the 32 neurons separately. `Tanh` converts each output to a number between -1 and 1, while introducing nonlinearity so that the network can represent curved concentration trajectories (not only straight lines).
 
 ```python
             nn.Tanh(), #TANH TRANSFORMATION FOR FIRST H.L
@@ -356,7 +366,8 @@ then apply the tanh activation function to the output of each of the 32 neurons 
 
 The next layer receives 32 numbers from the first hidden layer (tanh) and produces 32 new numbers. Each of the 32 neurons receives all 32 previous values. PyTorch creates and learns:
 
-- 32 × 32 = 1,024 weights. #each of the 32 neurons received the previous values and the new 32 numbers generated by the second hidden layer.
+- 32 × 32 = 1,024 weights. 
+Note that each of the 32 neurons received the previous 32 values and the additional new 32 numbers generated by the second hidden layer.
 
 - 32 biases.
 
@@ -364,13 +375,15 @@ The next layer receives 32 numbers from the first hidden layer (tanh) and produc
             nn.Linear(n_hidden, n_hidden), #SECOND HIDDEN LAYER
 ```
 
-Apply tanh to the 32 values produced by the second hidden layer
+Apply `tanh` to the 32 values produced by the second hidden layer:
 
 ```python
             nn.Tanh(), #TANH TRANSFORMATION FOR SECOND H.L
 ```
 
-This layer receives the 32 hidden values and produces two outputs: (1) C1(t)_pred (2) C2(t)_pred
+This layer receives the 32 hidden values and produces two outputs: 
+- (1) C1(t)_pred 
+- (2) C2(t)_pred
 
 ```python
             nn.Linear(n_hidden, 2) #OUTPUT LAYER, <- 2 outputs: C1 and C2
@@ -378,50 +391,73 @@ This layer receives the 32 hidden values and produces two outputs: (1) C1(t)_pre
 ```
 
 ```python
-    def forward(self, t):
-```
-
-forward defines how the input data travels through the network. Specifically, it passes the time values through every operation in self.net: t -> Linear -> Tanh -> Linear -> Tanh -> Linear -> out
-
-```python
+    def forward(self, t): #forward defines how the input data travels through the network. Specifically, it passes the time values through every operation in self.net: t -> Linear -> Tanh -> Linear -> Tanh -> Linear -> out
         out = self.net(t)          # shape (batch, 2)
-        C1 = out[:, 0:1]            # first column -> C1 (this specific notation is used to keep its two-dimensional shape)
-        C2 = out[:, 1:2]            # second column -> C2
+        C1 = out[:, 0:1]           # first column -> C1 (this specific notation is used to keep its two-dimensional shape)
+        C2 = out[:, 1:2]           # second column -> C2
         return C1, C2
 ```
 
-the output will look like this 2D array for example times: column 0       column 1 C1              C2 time 0        [ C1(0),         C2(0)  ] time 10       [ C1(10),        C2(10) ] time 20       [ C1(20),        C2(20) ]
+The output containing the 2D array for C1(t)_pred and C2(t)_pred with respect to time will look like the following: 
+
+                column 0       column 1 
+                   C1             C2 
+time 0          [C1(0),          C2(0)] 
+time 10         [C1(10),        C2(10)] 
+time 20         [C1(20),        C2(20)]
 
 ```python
 model = PINN(n_hidden=32) #both hidden layers contain 32 neurons.
 ```
 
-The training of the weights will be shown further on. At this point, PyTorch is generating all the initial weights and biases. The training will then change them.
+The training of the weights will be shown in the follwing sections. At this point, PyTorch is generating all the initial weights and biases. However, the training will then change them appropriately.
 
-Here, the overall structure is summarized the overall structure: Input t (time) 1 number │ ▼ First hidden layer 32 neurons │ tanh │ ▼ Second hidden layer 32 neurons │ tanh │ ▼ Output layer 2 numbers │ ├── C1(t) └── C2(t)
+Here, the overall structure is summarized: 
 
-NOW YOU NEED AN AUTOMATIC DIFFERENTIATIOR
+   Input
+  t (time)
+  1 number
+    │
+    ▼
+First hidden layer
+  32 neurons
+    │
+   tanh
+    │
+    ▼
+Second hidden layer
+  32 neurons
+    │
+   tanh
+    │
+    ▼
+Output layer
+  2 numbers
+    │
+    ├── C1(t)
+    └── C2(t)
+
+
+Now, an automatic differentiator is needed:
 
 ```python
 def derivative(y, x):
 ```
 
-Compute the derivative of y with respect to x using autograd from torch y, x must be tensors with requires_grad=True for x
+This computes the derivative of y with respect to x using autograd from torch y, x must be tensors with requires_grad=True for x.
 
 ```python
     return torch.autograd.grad(
         y, x, 
-```
-
-y is the quantity being differentiated (in this case C1_pred, C2_pred) x is the variable with respect to which y is differentiated (in this case, time t)
-
-```python
+    #y is the quantity being differentiated (in this case C1_pred, C2_pred) x is the variable with respect to which y is differentiated (in this case, time t)
         grad_outputs=torch.ones_like(y), #creation of a tensor of 1s with the same shape as y to return the derivative at every t.
         create_graph=True
     )[0]
 ```
 
-This will allow to calculate easily the derivatives of C1_pred and C2_pred. derivative(C1_pred, t) -> dC1/dt derivative(C2_pred, t) -> dC2/dt
+This will allow to calculate easily the derivatives of C1_pred and C2_pred:
+derivative(C1_pred, t) -> dC1/dt 
+derivative(C2_pred, t) -> dC2/dt
 
 Note that the purpose of this work is to calculate the BBB permeability (K1), knowing that all K1,k2,k3, and k4 are unknown. Hence, the goal is to recover these kinetic rates from the experimental PET data and each of them must behave as a NN weight. These weights are indicated as k1_raw, k2_raw, k3_raw, and k4_raw and are constantly optimized. These kinetic values cannot be negative, that is why softplus is used:
 
@@ -443,11 +479,11 @@ def get_rates():
     )
 ```
 
-The latter function return the physical rates used in the differential equations.
+The function above returns the physical rates used in the differential equations.
 
 # Define the loss components (PINN)
 
-Remember that the PINN predicts (C_{1,\mathrm{pred}}(t)) and (C_{2,\mathrm{pred}}(t)) from the provided (C_{\mathrm{PET,exp}}(t)). The PINN is trained on three kinds of error:
+Let us remember that the PINN predicts (C_{1,\mathrm{pred}}(t)) and (C_{2,\mathrm{pred}}(t)) from the provided (C_{\mathrm{PET,exp}}(t)). The PINN is trained on three kinds of error:
 
 1. **Data loss:** reproduce what the PET scanner measured. For each of the 10 measurements, the difference is calculated between the predicted PET signal
 
@@ -461,7 +497,7 @@ Remember that the PINN predicts (C_{1,\mathrm{pred}}(t)) and (C_{2,\mathrm{pred}
 
 3. **Initial-condition loss:** start from the correct physical state. Here, the squared error is calculated between the initial conditions predicted by the neural network and those observed experimentally: $C_{1,\mathrm{pred}}(0)-0$ and $C_{2,\mathrm{pred}}(0)-0$.
 
-Thus, through these three data losses we measure both the 10 PET data points, but also the data predicted in between.
+Thus, through these three errors we measure the error produced not only by the 10 PET data points, but also by the data predicted in between.
 
 ```python
 def physics_loss(model, t):
@@ -477,11 +513,7 @@ def physics_loss(model, t):
 ```python
     cp_t = Cp_torch(t)
     k1_p, k2_p, k3_p, k4_p = get_rates()
-```
-
-the two equations, using the LEARNABLE rate guesses instead of the real (unknown-to-the-model) k1_real, k2_real, k3_real, k4_real
-
-```python
+#Below are shown the two equations, using the LEARNABLE rate guesses instead of the real (unknown-to-the-model) k1_real, k2_real, k3_real, k4_real:
     dC1_dt_true = k1_p*cp_t - (k2_p+k3_p)*C1_pred + k4_p*C2_pred
     dC2_dt_true = k3_p*C1_pred - k4_p*C2_pred
 ```
@@ -503,7 +535,7 @@ def initial_condition_loss(model):
 def data_loss(model, t_data, CPET_data):
 ```
 
-the network predicts C1, C2 separately, but the DATA is CPET (the combined signal), so we combine the predictions the same way, using the known Vb and Cp(t), before comparing to CPET_data
+The network predicts C1, C2 separately, but the DATA is CPET (the combined signal), so we combine the predictions the same way, using the known Vb and Cp(t), before comparing to CPET_data.
 
 ```python
     C1_pred, C2_pred = model(t_data)
@@ -520,28 +552,27 @@ optimizer = torch.optim.Adam(
     [k1_raw, k2_raw, k3_raw, k4_raw],
     lr=0.005
 )
+#Here, lr is the learning rate. This controls the step size taken during each update. Here it is slected Adam, one of the most popular optimization algorithms in deep learning. 
+#model.parameters(): This hands all the trainable weights and biases in the neural network over to the optimizer so it "knows" what to adjust.
 ```
 
-Here, lr is the learning rate. This controls the step size taken during each update. This selects Adam, one of the most popular optimization algorithms in deep learning. model.parameters(): This hands all the trainable weights and biases in your neural network over to the optimizer so it knows what to adjust.
-
-Hyperparameters for weighting the loss terms WEIGHTS
+Hyperparameters for weighting the loss terms:
 
 ```python
+#WEIGHTS:
 lambda_data = 20.0  #upweighted since there are only 10 sparse points to anchor the fit
 lambda_ode = 1.0
 lambda_ic = 1.0
+#These can be written manually for a baseline attempt, but eventually a softadapt/self-adaptive PINN can be executed.
 ```
-
-can be written manually for a baseline attempt, but then you can write a softadapt/self-adaptive PINN.
-
-For logging
 
 ```python
+#For logging:
 num_epochs = 6000 #number of iterations to train the model, the higher the value, the more is the accuracy.
 print_every = 500 #printing once in every 500 iterations.
+#num epochs: it is usually set a high epoch count and let a technique called Early Stopping decide when to halt. 
+#VALIDATION LOSS: As long as validation loss is decreasing, the model is learning. When validation loss stops improving and begins rising while training loss keeps dropping, the model is just memorizing the training data. Set a "patience" threshold (e.g., 10–20 epochs). If validation loss doesn't improve for that many epochs, stop automatically and restore the best weights.
 ```
-
-Num epochs: you usually set a high epoch count and let a technique called Early Stopping decide when to halt. VALIDATION LOSS: As long as validation loss is decreasing, the model is learning. When validation loss stops improving and begins rising while training loss keeps dropping, your model is just memorizing the training data. You set a "patience" threshold (e.g., 10–20 epochs). If validation loss doesn't improve for that many epochs, stop automatically and restore the best weights.
 
 # Training loop
 
@@ -557,24 +588,22 @@ for epoch in range(num_epochs):
     l_ic = initial_condition_loss(model)
 ```
 
-Combine losses with weights
+Then, combine losses with weights:
 
 ```python
     loss = lambda_data*l_data + lambda_ode*l_ode + lambda_ic*l_ic
 ```
 
-Backpropagation: central mathematical algorithm that allows a neural network to learn from its errors.
+Then, backpropagation, which is the central mathematical algorithm that allows a neural network to learn from its errors, follows:
 
 ```python
     loss.backward() #compute gradients
     optimizer.step() #update weights
+    #Backpropagation works out "who" in the network was responsible for a mistake, and by how much.
 ```
 
-Backpropagation works out who in the network was responsible for a mistake, and by how much.
-
-Logging - Print progress
-
 ```python
+#Logging, Print progress
     if (epoch+1) % print_every == 0:
         k1_p, k2_p, k3_p, k4_p = get_rates()
         print(f"Epoch {epoch+1}/{num_epochs}, Loss={loss.item():.6f}, "
@@ -589,21 +618,34 @@ print(f"Recovered values: k1={k1_f.item():.4f}, k2={k2_f.item():.4f}, "
       f"k3={k3_f.item():.4f}, k4={k4_f.item():.4f}")
 ```
 
-How the training looks like for 1/6000 epochs: Network predicts C1 and C2 ↓ Losses measure the mistakes ↓ Backpropagation finds which weights caused the mistakes ↓ Optimizer adjusts the network weights and K1, k2, k3, k4 ↓ Network makes improved predictions Hence, the losses are outside the network, judge its outputs, and provide the information needed to correct its weights and kinetic rates.
+This below is an example og how the training process looks like for one fo the 6000 epochs:
 
-TWO-STEP CYCLE: Forward Pass: Input data flows forward through the network layers to produce a prediction, and the loss function computes a single number saying how wrong that prediction was. Backward Pass (Backpropagation): The error flows backward through the network. Using the calculus chain rule, PyTorch calculates the gradient—the direction and magnitude to tweak each weight to reduce the loss—starting from the output layer back to the input.
+Network predicts C1 and C2
+           ↓
+Losses measure the mistakes
+           ↓
+Backpropagation finds which weights caused the mistakes
+           ↓
+Optimizer adjusts the network weights and k1, k2, k3, k4
+           ↓
+Network makes improved predictions
 
-By plotting, see how good the model made its predictions.
+Hence, the losses are outside the network: they judge its outputs, and provide the information needed to correct its weights and kinetic rates.
+
+This is a two-step cycle:
+- Forward Pass: Input data flows forward through the network layers to produce a prediction, and the loss function computes a single number saying how wrong that prediction was. 
+- Backward Pass (Backpropagation): The error flows backward through the network. Using the calculus chain rule, PyTorch calculates the gradient—the direction and magnitude to tweak each weight to reduce the loss—starting from the output layer back to the input.
+
 
 # Answer to the research question
 
-Obtain the final positive kinetic parameters estimated by the PINN.
+Obtain the final positive kinetic parameters estimated by the PINN and, ultimately, plot the graph showing how CPET(t)_true, CPET(t)_exp, and CPET(t)_pred change over time.
 
 ```python
 k1_final, k2_final, k3_final, k4_final = get_rates()
 ```
 
-Convert the PyTorch tensors into ordinary Python numbers.
+Convert the PyTorch tensors into ordinary Python numbers:
 
 ```python
 k1_value = k1_final.detach().item()
@@ -668,9 +710,9 @@ CPET_true_plot = Vb*Cp(t_plot.flatten()) + (1-Vb)*(C1_true_plot + C2_true_plot)
 
 ```python
 plt.figure(figsize=(8, 5))
-plt.scatter(t_data, CPET_exp, color='red', label='Noisy CPET data')
-plt.plot(t_plot, CPET_true_plot, 'k--', label='True CPET(t)')
-plt.plot(t_plot, CPET_pred_plot, 'b', label='PINN CPET(t)')
+plt.scatter(t_data, CPET_exp, color='red', label='CPET_exp (noisy)')
+plt.plot(t_plot, CPET_true_plot, 'k--', label='CPET(t)_true (exact)')
+plt.plot(t_plot, CPET_pred_plot, 'b', label='CPET(t)_pred (PINN)')
 plt.xlabel('t (minutes)')
 plt.ylabel('CPET(t)')
 plt.legend()
