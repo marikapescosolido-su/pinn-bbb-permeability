@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "PINN and BBB Permeability"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Paper
+    right:
+      - icon: github
+        href: https://github.com/marikapescosolido-su/pinn-bbb-permeability
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    code-line-numbers: true
+
+execute:
+  enabled: false
