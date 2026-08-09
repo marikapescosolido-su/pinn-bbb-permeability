@@ -21,11 +21,11 @@ format:
 
 RQ: Determine the BBB permeability (K1) from PET data using a Physics-Informed Neural Network (PINN) for the FDG tracer in the brain.
 
-This work was produced as part of Equitech Futures' "AI for Science Summer School", guided by Dr. Mlinar and Dr. Mishra. The purpose of this document is to facilitate the understanding of PINN set on a medical/clinical context, providing guidance on the concept of PINN itself and how Neural Networks (NNs) work. However, it does assume NN prior knowledge. Thus, if the reader thinks would benefit from a deeper understanding of NNs, I recommend this online resource (Chapter 1): http://neuralnetworksanddeeplearning.com/chap1.html.
+This work was produced as part of Equitech Futures' "AI for Science Summer School", guided by Dr. Mlinar and Dr. Mishra (https://www.futureshub.com/cohorts/ai-for-science-summer-school). The purpose of this document is to facilitate the understanding of PINN set on a medical/clinical context, providing guidance on the concept of PINN itself and how Neural Networks (NNs) work. However, it does assume NN prior knowledge. Thus, if the reader thinks would benefit from a deeper understanding of NNs, I recommend this online resource (Chapter 1): http://neuralnetworksanddeeplearning.com/chap1.html.
 
 # Context
 
-Imagine that a patient is injected with a radioactive sugar tracer (such as FDG) and then enters a PET scanner, which takes repeated snapshots monitoring the radioactivity "flow" of the tracer in the brain. FDG is a modified glucose molecule that, despite undergoing the same phosphorylation process as natural glucose and turning into FDG-6 (when the molecule attaches to a phosphate group), is not continuously broken down for energy. When FDG is in its FDG-6 form, due to its new chemical structure, it cannot be further metabolized and thus becomes trapped in the neural cell.
+Imagine that a patient is injected with a radioactive sugar tracer (such as FDG) and then enters a PET scanner, which takes repeated snapshots monitoring the radioactivity "flow" of the tracer in the brain. FDG is a modified glucose molecule that, despite undergoing the same phosphorylation process as natural glucose and turning into FDG-6 (when the molecule attaches to a phosphate group), it is not continuously broken down for energy. When FDG is in its FDG-6 form, due to its new chemical structure, it cannot be further metabolized and thus becomes trapped in neural cells.
 
 Hence, PET can visualize the radioactivity level in each area of the brain after an interval \(t\). This "radioactivity signal" is given by the sum of:
 
@@ -689,3 +689,6 @@ print(f"Saved plot to: {plot_path}")
 ```
 
 ![PINN prediction compared with the true FDG two-tissue compartment signal and noisy CPET measurements.](fdg_final.png){#fig-fdg-final width=90% fig-align="center"}
+
+# Acknowledgments
+I extend my sincere gratitude to Dr. Mlinar and Dr. Mishra for their guidance throughout the brainstorming and writing of this work. I am also deeply grateful to the Equitech Futures Institute for awarding me an EFI scholarship and granting me Futures Hub "Learner+" access, which enabled me to attend the "AI for Science Summer School" free of charge.
