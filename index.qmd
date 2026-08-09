@@ -1,5 +1,5 @@
 ---
-title: "Determining the BBB Permeability (K1) from PET Data Using a Physics-Informed Neural Network (PINN) for an FDG Tracer in the Brain"
+title: "Determining the BBB Permeability (k1) from PET Data Using a Physics-Informed Neural Network (PINN) for an FDG Tracer in the Brain"
 author: "Marika Pescosolido"
 date: last-modified
 format:
@@ -645,3 +645,5 @@ plot_path = Path(__file__).resolve().parent / "fdg_final.png"
 plt.savefig(plot_path, dpi=150, bbox_inches="tight")
 print(f"Saved plot to: {plot_path}")
 ```
+
+![PINN prediction compared with the true FDG two-tissue compartment signal and noisy CPET measurements.](fdg_final.png){#fig-fdg-final width=90% fig-align="center"}
