@@ -21,7 +21,7 @@ format:
 
 RQ: Determine the BBB permeability (K1) from PET data using a Physics-Informed Neural Network (PINN) for the FDG tracer in the brain.
 
-This work was produced as part of Equitech Futures' "AI for Science Summer School", guided by Dr. Mlinar and Dr. Mishra (https://www.futureshub.com/cohorts/ai-for-science-summer-school). The purpose of this document is to facilitate the understanding of PINN set on a medical/clinical context, providing guidance on the concept of PINN itself and how Neural Networks (NNs) work. However, it does assume NN prior knowledge. Thus, if the reader thinks would benefit from a deeper understanding of NNs, I recommend this online resource (Chapter 1): http://neuralnetworksanddeeplearning.com/chap1.html.
+This work was produced as part of Equitech Futures' "AI for Science Summer School", guided by Dr. Mlinar and Dr. Mishra (https://www.futureshub.com/cohorts/ai-for-science-summer-school). The purpose of this document is to facilitate the understanding of PINNs set on a medical/clinical context, providing guidance on the concept of PINN itself and how Neural Networks (NNs) work. However, it does assume NN prior knowledge. Thus, if the reader thinks would benefit from a deeper understanding of NNs, I recommend this online resource (Chapter 1): http://neuralnetworksanddeeplearning.com/chap1.html.
 
 # Context
 
